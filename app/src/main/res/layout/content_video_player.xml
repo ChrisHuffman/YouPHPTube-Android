@@ -8,22 +8,33 @@
     tools:context="com.youphptube.youphptube.VideoPlayer"
     tools:showIn="@layout/activity_video_player">
 
-    <VideoView
+    <FrameLayout
+        android:id="@+id/videoframe"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="false"
-        android:id="@+id/videoplayler"
-        android:layout_gravity="center" />
+        android:layout_height="wrap_content">
+
+        <VideoView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="false"
+            android:id="@+id/videoplayler"
+            android:layout_gravity="center" />
+
+
+
+    </FrameLayout>
 
     <ListView
-        android:layout_below="@id/videoplayler"
+        android:layout_below="@id/videoframe"
         android:layout_marginTop="20sp"
         android:id="@+id/list"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
+
+
 
 
 </android.widget.RelativeLayout>

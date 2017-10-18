@@ -62,7 +62,7 @@ class VideoAdaptor extends BaseAdapter {
         title.setText(Imagens.get("title"));
         time.setText(Imagens.get("duration"));
         nomeuser.setText(Imagens.get("name"));
-        views_count.setText(Imagens.get("views_count") + R.string.views);
+        views_count.setText(Imagens.get("views_count") + " " + activity.getString(R.string.views));
         //imageLoader.DisplayImage(Imagens.get("Thumbnail"), thumb_image);
 
 

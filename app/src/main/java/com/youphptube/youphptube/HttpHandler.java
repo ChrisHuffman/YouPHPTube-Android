@@ -80,9 +80,6 @@ class HttpHandler {
         try {
             URL url = new URL(reqUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-            //conn.setReadTimeout(60);
-            //conn.setConnectTimeout(20);
             conn.setRequestMethod("POST");
             conn.setDoInput(true);
             conn.setDoOutput(true);

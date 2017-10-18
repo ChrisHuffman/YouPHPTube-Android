@@ -6,25 +6,20 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.view.View;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.AdapterView;
-import android.widget.TextView;
-import android.widget.Toast;
-import org.json.JSONObject;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -34,52 +29,35 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity {
+public class MasterActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     ArrayList<HashMap<String, String>> VideosList;
     private ListView lv;
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    //mTextMessage.setText(R.string.title_home);
-                    return true;
-                case R.id.navigation_dashboard:
-                    //mTextMessage.setText(R.string.title_dashboard);
-                    return true;
-                case R.id.navigation_notifications:
-                    //mTextMessage.setText(R.string.title_notifications);
-                    SharedPreferences Defs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                    SharedPreferences.Editor editor = Defs.edit();
-                    editor.putBoolean("AutoLogin", false);
-                    editor.apply();
-                    finish();
-                    Intent objIndent = new Intent(MainActivity.this,ConfigurationActivity.class);
-                    startActivity(objIndent);
-                    return true;
-            }
-            return false;
-        }
-
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_master);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        //mTextMessage = (TextView) findViewById(R.id.message);
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
 
         VideosList = new ArrayList<>();
         lv = (ListView) findViewById(R.id.list);
 
 
-        final SwipeRefreshLayout  RefreshLayout = (SwipeRefreshLayout) findViewById(R.id.RefreshLayout);
+        final SwipeRefreshLayout RefreshLayout = (SwipeRefreshLayout) findViewById(R.id.RefreshLayout);
 
         RefreshLayout.setOnRefreshListener(
                 new SwipeRefreshLayout.OnRefreshListener() {
@@ -95,9 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         new GetVideos().execute();
+
     }
-
-
 
     private class GetVideos extends AsyncTask<Void, Void, Void> {
 
@@ -106,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             //Toast.makeText(MainActivity.this,"Json Data is downloading",Toast.LENGTH_LONG).show();
-            progressBar = new ProgressDialog(MainActivity.this);
+            progressBar = new ProgressDialog(MasterActivity.this);
             progressBar.setCancelable(true);
             progressBar.setMessage(getString(R.string.pleasewait));
             progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -188,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
 
-            VideoAdaptor adapter=new VideoAdaptor(MainActivity.this, VideosList, R.layout.video_list_normal);
+            VideoAdaptor adapter=new VideoAdaptor(MasterActivity.this, VideosList, R.layout.video_list_normal);
 
             //ListAdapter adapter = new SimpleAdapter(context,ListaAccoes, R.layout.video_list_normal, new String[] { "Title"}, new int[] {R.id.NomeFicheiro});
             lv.setAdapter(adapter);
@@ -204,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                     String videourl= VideosList.get(position).get("VideoUrl");
                     String videopreviewurl= VideosList.get(position).get("Thumbnail");
                     if (videourl!=null) {
-                        Intent myIntent = new Intent(MainActivity.this, VideoPlayer.class);
+                        Intent myIntent = new Intent(MasterActivity.this, VideoPlayer.class);
                         myIntent.putExtra("videourl", videourl);
                         myIntent.putExtra("videopreviewurl", videopreviewurl);
                         startActivity(myIntent);
@@ -220,5 +197,71 @@ public class MainActivity extends AppCompatActivity {
             lv.setAdapter(adapter);*/
             progressBar.dismiss();
         }
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.master, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+            SharedPreferences Defs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            SharedPreferences.Editor editor = Defs.edit();
+            editor.putBoolean("AutoLogin", false);
+            editor.apply();
+            finish();
+            Intent objIndent = new Intent(MasterActivity.this,ConfigurationActivity.class);
+            startActivity(objIndent);
+            return true;
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

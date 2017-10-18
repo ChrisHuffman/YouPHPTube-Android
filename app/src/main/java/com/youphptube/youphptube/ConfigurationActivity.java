@@ -104,6 +104,7 @@ public class ConfigurationActivity extends AppCompatActivity{
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
+        HttpHandler.cookie = null;
         if (mAuthTask != null) {
             return;
         }
@@ -202,7 +203,6 @@ public class ConfigurationActivity extends AppCompatActivity{
 
         @Override
         protected Integer doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
             try {
                 // Simulate network access.
@@ -255,7 +255,7 @@ public class ConfigurationActivity extends AppCompatActivity{
                 editor.putBoolean("AutoLogin", true);
                 editor.apply();
                 finish();
-                Intent objIndent = new Intent(ConfigurationActivity.this,MainActivity.class);
+                Intent objIndent = new Intent(ConfigurationActivity.this,MasterActivity.class);
                 startActivity(objIndent);
             } else {
                 if (result == 0){

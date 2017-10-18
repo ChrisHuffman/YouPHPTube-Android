@@ -18,10 +18,13 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.MediaController;
 import android.widget.Toast;
@@ -44,8 +47,6 @@ public class VideoPlayer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_video_player);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
 
         VideosList = new ArrayList<>();
         lv = (ListView) findViewById(R.id.list);
@@ -63,7 +64,13 @@ public class VideoPlayer extends AppCompatActivity {
             MediaController controller = new MediaController(this);
             controller.setAnchorView(video);
             controller.setMediaPlayer(video);
+            controller.setAnchorView(video);
             video.setMediaController(controller);
+
+
+
+
+
 
             new GetVideos().execute();
         }
