@@ -82,7 +82,6 @@ public class MasterActivity extends AppCompatActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            //Toast.makeText(MainActivity.this,"Json Data is downloading",Toast.LENGTH_LONG).show();
             progressBar = new ProgressDialog(MasterActivity.this);
             progressBar.setCancelable(true);
             progressBar.setMessage(getString(R.string.pleasewait));
@@ -101,37 +100,36 @@ public class MasterActivity extends AppCompatActivity
 
             String jsonStr = sh.GetVideos(url);
 
-            //Log.e(TAG, "Response from url: " + jsonStr);
             if (jsonStr != null) {
                 try {
                     JSONObject jsonObj = new JSONObject(jsonStr);
 
                     // Getting JSON Array node
-                    JSONArray contacts = jsonObj.getJSONArray("videos");
+                    JSONArray videos = jsonObj.getJSONArray("videos");
 
                     // looping through All Contacts
-                    for (int i = 0; i < contacts.length(); i++) {
-                        JSONObject c = contacts.getJSONObject(i);
+                    for (int i = 0; i < videos.length(); i++) {
+                        JSONObject c = videos.getJSONObject(i);
 
                         // tmp hash map for single contact
-                        HashMap<String, String> contact = new HashMap<>();
+                        HashMap<String, String> video = new HashMap<>();
 
                         // adding each child node to HashMap key => value
-                        contact.put("id", c.getString("id"));
-                        contact.put("name", c.getString("name"));
-                        contact.put("email", c.getString("email"));
-                        contact.put("photoURL", c.getString("photoURL"));
-                        contact.put("Thumbnail", c.getString("Thumbnail"));
-                        contact.put("duration", c.getString("duration"));
-                        contact.put("VideoUrl", c.getString("VideoUrl"));
+                        video.put("VideoID", c.getString("id"));
+                        video.put("name", c.getString("name"));
+                        video.put("email", c.getString("email"));
+                        video.put("photoURL", c.getString("photoURL"));
+                        video.put("Thumbnail", c.getString("Thumbnail"));
+                        video.put("duration", c.getString("duration"));
+                        video.put("VideoUrl", c.getString("VideoUrl"));
 
-                        contact.put("title", c.getString("title"));
-                        contact.put("clean_title", c.getString("clean_title"));
-                        contact.put("description", c.getString("description"));
-                        contact.put("views_count", c.getString("views_count"));
-                        contact.put("created", c.getString("created"));
-                        contact.put("UserPhoto", c.getString("UserPhoto"));
-                        VideosList.add(contact);
+                        video.put("title", c.getString("title"));
+                        video.put("clean_title", c.getString("clean_title"));
+                        video.put("description", c.getString("description"));
+                        video.put("views_count", c.getString("views_count"));
+                        video.put("created", c.getString("created"));
+                        video.put("UserPhoto", c.getString("UserPhoto"));
+                        VideosList.add(video);
                     }
                 } catch (final JSONException e) {
                     //Log.e(TAG, "Json parsing error: " + e.getMessage());
@@ -152,7 +150,7 @@ public class MasterActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         Toast.makeText(getApplicationContext(),
-                                "Couldn't get json from server. Check LogCat for possible errors!",
+                                "There was an error contacting the server",
                                 Toast.LENGTH_LONG).show();
                     }
                 });
@@ -180,10 +178,12 @@ public class MasterActivity extends AppCompatActivity
 
                     String videourl= VideosList.get(position).get("VideoUrl");
                     String videopreviewurl= VideosList.get(position).get("Thumbnail");
+                    String VideoID = VideosList.get(position).get("VideoID");
                     if (videourl!=null) {
                         Intent myIntent = new Intent(MasterActivity.this, VideoPlayer.class);
                         myIntent.putExtra("videourl", videourl);
                         myIntent.putExtra("videopreviewurl", videopreviewurl);
+                        myIntent.putExtra("VideoID", VideoID);
                         startActivity(myIntent);
                     }
 
@@ -191,10 +191,6 @@ public class MasterActivity extends AppCompatActivity
                 }
             });
 
-            /*ListAdapter adapter = new SimpleAdapter(MainActivity.this, contactList,
-                    R.layout.video_list_normal, new String[]{ "title","mobile"},
-                    new int[]{R.id.email, R.id.mobile});
-            lv.setAdapter(adapter);*/
             progressBar.dismiss();
         }
     }

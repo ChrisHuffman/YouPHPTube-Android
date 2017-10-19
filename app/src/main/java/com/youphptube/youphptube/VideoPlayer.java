@@ -4,57 +4,41 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.media.MediaPlayer;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class VideoPlayer extends AppCompatActivity {
-    ArrayList<HashMap<String, String>> VideosList;
-    private ListView lv;
+    ArrayList<HashMap<String, String>> RelatedVideosList;
+    private ListView RelatedVideosListView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_video_player);
 
-        VideosList = new ArrayList<>();
-        lv = (ListView) findViewById(R.id.list);
+        RelatedVideosList = new ArrayList<>();
+        RelatedVideosListView = (ListView) findViewById(R.id.list);
 
 
         Intent intent = getIntent();
         String videourl = intent.getStringExtra("videourl");
         String videopreviewurl = intent.getStringExtra("videopreviewurl");
+        String VideoID = intent.getStringExtra("VideoID");
         if (videourl!=null){
 
             Uri uri= Uri.parse(videourl);
@@ -67,12 +51,12 @@ public class VideoPlayer extends AppCompatActivity {
             controller.setAnchorView(video);
             video.setMediaController(controller);
 
+            //Getting video information and add view count
+            //In the future only videoID or URL will be passed and all video information will be get from here
+            new GetVideo(VideoID).execute();
 
-
-
-
-
-            new GetVideos().execute();
+            //Getting related videos list
+            new GetRelatedVideos().execute();
         }
 
 
@@ -96,19 +80,14 @@ public class VideoPlayer extends AppCompatActivity {
     }
 
     private class GetVideo extends AsyncTask<Void, Void, Void> {
+        private String VideoID;
+        private GetVideo(String videoid){
+            VideoID = videoid;
+        }
 
-        private ProgressDialog progressBar;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            //Toast.makeText(MainActivity.this,"Json Data is downloading",Toast.LENGTH_LONG).show();
-            progressBar = new ProgressDialog(VideoPlayer.this);
-            progressBar.setCancelable(true);
-            progressBar.setMessage(getString(R.string.pleasewait));
-            progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progressBar.setProgress(0);
-            progressBar.setMax(100);
-            progressBar.show();
         }
 
         @Override
@@ -117,42 +96,28 @@ public class VideoPlayer extends AppCompatActivity {
 
             SharedPreferences Defs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             String ServerUrl = Defs.getString("ServerUrl", "");
-            String url = ServerUrl + "/videosAndroid.json";
+            String url = ServerUrl + "/videoAndroid.json";
 
-            String jsonStr = sh.GetVideo(url);
+            String jsonStr = sh.GetVideo(url, VideoID);
 
             //Log.e(TAG, "Response from url: " + jsonStr);
             if (jsonStr != null) {
                 try {
                     JSONObject jsonObj = new JSONObject(jsonStr);
 
-                    // Getting JSON Array node
-                    JSONArray contacts = jsonObj.getJSONArray("videos");
+                    final String likes= jsonObj.getString("likes");
 
-                    /*// looping through All Contacts
-                    for (int i = 0; i < contacts.length(); i++) {
-                        JSONObject c = contacts.getJSONObject(i);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),
+                                    "Likes: " + likes,
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
 
-                        // tmp hash map for single contact
-                        HashMap<String, String> contact = new HashMap<>();
 
-                        // adding each child node to HashMap key => value
-                        contact.put("id", c.getString("id"));
-                        contact.put("name", c.getString("name"));
-                        contact.put("email", c.getString("email"));
-                        contact.put("photoURL", c.getString("photoURL"));
-                        contact.put("Thumbnail", c.getString("Thumbnail"));
-                        contact.put("duration", c.getString("duration"));
-                        contact.put("VideoUrl", c.getString("VideoUrl"));
 
-                        contact.put("title", c.getString("title"));
-                        contact.put("clean_title", c.getString("clean_title"));
-                        contact.put("description", c.getString("description"));
-                        contact.put("views_count", c.getString("views_count"));
-                        contact.put("created", c.getString("created"));
-                        contact.put("UserPhoto", c.getString("UserPhoto"));
-                        VideosList.add(contact);
-                    }*/
                 } catch (final JSONException e) {
                     //Log.e(TAG, "Json parsing error: " + e.getMessage());
                     runOnUiThread(new Runnable() {
@@ -177,83 +142,60 @@ public class VideoPlayer extends AppCompatActivity {
                     }
                 });
             }
-
             return null;
         }
 
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-
-            progressBar.dismiss();
         }
     }
 
-    private class GetVideos extends AsyncTask<Void, Void, Void> {
-
-        private ProgressDialog progressBar;
+    private class GetRelatedVideos extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            //Toast.makeText(MainActivity.this,"Json Data is downloading",Toast.LENGTH_LONG).show();
-            /*progressBar = new ProgressDialog(VideoPlayer.this);
-            progressBar.setCancelable(true);
-            progressBar.setMessage(getString(R.string.pleasewait));
-            progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progressBar.setProgress(0);
-            progressBar.setMax(100);
-            progressBar.show();*/
         }
 
         @Override
         protected Void doInBackground(Void... arg0) {
             HttpHandler sh = new HttpHandler();
-
             SharedPreferences Defs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             String ServerUrl = Defs.getString("ServerUrl", "");
             String url = ServerUrl + "/videosAndroid.json";
-
             String jsonStr = sh.GetVideos(url);
-
-            //Log.e(TAG, "Response from url: " + jsonStr);
             if (jsonStr != null) {
                 try {
                     JSONObject jsonObj = new JSONObject(jsonStr);
-
                     // Getting JSON Array node
-                    JSONArray contacts = jsonObj.getJSONArray("videos");
-
-                    // looping through All Contacts
-                    for (int i = 0; i < contacts.length(); i++) {
-                        JSONObject c = contacts.getJSONObject(i);
-
+                    JSONArray Videos = jsonObj.getJSONArray("videos");
+                    // looping through All Videos
+                    for (int i = 0; i < Videos.length(); i++) {
+                        JSONObject c = Videos.getJSONObject(i);
                         // tmp hash map for single contact
-                        HashMap<String, String> contact = new HashMap<>();
-
+                        HashMap<String, String> Video = new HashMap<>();
                         // adding each child node to HashMap key => value
-                        contact.put("id", c.getString("id"));
-                        contact.put("name", c.getString("name"));
-                        contact.put("email", c.getString("email"));
-                        contact.put("photoURL", c.getString("photoURL"));
-                        contact.put("Thumbnail", c.getString("Thumbnail"));
-                        contact.put("duration", c.getString("duration"));
-                        contact.put("VideoUrl", c.getString("VideoUrl"));
-
-                        contact.put("title", c.getString("title"));
-                        contact.put("clean_title", c.getString("clean_title"));
-                        contact.put("description", c.getString("description"));
-                        contact.put("views_count", c.getString("views_count"));
-                        contact.put("created", c.getString("created"));
-                        contact.put("UserPhoto", c.getString("UserPhoto"));
-                        VideosList.add(contact);
+                        Video.put("VideoID", c.getString("id"));
+                        Video.put("name", c.getString("name"));
+                        Video.put("email", c.getString("email"));
+                        Video.put("photoURL", c.getString("photoURL"));
+                        Video.put("Thumbnail", c.getString("Thumbnail"));
+                        Video.put("duration", c.getString("duration"));
+                        Video.put("VideoUrl", c.getString("VideoUrl"));
+                        Video.put("title", c.getString("title"));
+                        Video.put("clean_title", c.getString("clean_title"));
+                        Video.put("description", c.getString("description"));
+                        Video.put("views_count", c.getString("views_count"));
+                        Video.put("created", c.getString("created"));
+                        Video.put("UserPhoto", c.getString("UserPhoto"));
+                        RelatedVideosList.add(Video);
                     }
                 } catch (final JSONException e) {
-                    //Log.e(TAG, "Json parsing error: " + e.getMessage());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(),
-                                    "Json parsing error: " + e.getMessage(),
+                                    "The has an error connecting to server: " + e.getMessage(),
                                     Toast.LENGTH_LONG).show();
                         }
                     });
@@ -261,12 +203,11 @@ public class VideoPlayer extends AppCompatActivity {
                 }
 
             } else {
-                //Log.e(TAG, "Couldn't get json from server.");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(getApplicationContext(),
-                                "Couldn't get json from server. Check LogCat for possible errors!",
+                                "The has an error connecting to server",
                                 Toast.LENGTH_LONG).show();
                     }
                 });
@@ -278,39 +219,26 @@ public class VideoPlayer extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-
-            VideoAdaptor adapter=new VideoAdaptor(VideoPlayer.this, VideosList, R.layout.video_list_horizontal);
-
-            //ListAdapter adapter = new SimpleAdapter(context,ListaAccoes, R.layout.video_list_normal, new String[] { "Title"}, new int[] {R.id.NomeFicheiro});
-            lv.setAdapter(adapter);
-            lv.setClickable(true);
-            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            VideoAdaptor adapter=new VideoAdaptor(VideoPlayer.this, RelatedVideosList, R.layout.video_list_horizontal);
+            RelatedVideosListView.setAdapter(adapter);
+            RelatedVideosListView.setClickable(true);
+            RelatedVideosListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
                 @Override
                 public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-
-                    Object o = lv.getItemAtPosition(position);
-
-
-                    String videourl= VideosList.get(position).get("VideoUrl");
-                    String videopreviewurl= VideosList.get(position).get("Thumbnail");
+                    String videourl= RelatedVideosList.get(position).get("VideoUrl");
+                    String videopreviewurl= RelatedVideosList.get(position).get("Thumbnail");
+                    String VideoID = RelatedVideosList.get(position).get("VideoID");
                     if (videourl!=null) {
                         Intent myIntent = new Intent(VideoPlayer.this, VideoPlayer.class);
                         myIntent.putExtra("videourl", videourl);
                         myIntent.putExtra("videopreviewurl", videopreviewurl);
+                        myIntent.putExtra("VideoID", VideoID);
                         startActivity(myIntent);
                         finish();
                     }
-
-
                 }
             });
-
-            /*ListAdapter adapter = new SimpleAdapter(MainActivity.this, contactList,
-                    R.layout.video_list_normal, new String[]{ "title","mobile"},
-                    new int[]{R.id.email, R.id.mobile});
-            lv.setAdapter(adapter);*/
-            //progressBar.dismiss();
         }
     }
 }

@@ -47,13 +47,31 @@ class HttpHandler {
         return response;
     }
 
-    String GetVideo(String reqUrl) {
+    String GetVideo(String reqUrl, String videoID) {
         String response = null;
         try {
             URL url = new URL(reqUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.addRequestProperty("Cookie", cookie);
-            conn.setRequestMethod("GET");
+            conn.setRequestMethod("POST");
+
+            // Append parameters to URL
+            Uri.Builder builder = new Uri.Builder()
+                    .appendQueryParameter("id", videoID);
+            String query = builder.build().getEncodedQuery();
+
+
+            // Open connection for sending data
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+            writer.write(query);
+            writer.flush();
+            writer.close();
+            os.close();
+            conn.connect();
+
+
+
             // read the response
             InputStream in = new BufferedInputStream(conn.getInputStream());
             response = convertStreamToString(in);
